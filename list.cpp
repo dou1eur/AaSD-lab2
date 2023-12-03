@@ -28,7 +28,7 @@ class DLList{
         }
         DLList(const DLList<T>& other){
             _head=_tail=nullptr;
-            _size=other.get_size();
+            _size=other._size;
             Node<T>* new_head=other._head;
             while(new_head){
                 push_tail(new_head->data);
@@ -40,7 +40,7 @@ class DLList{
             _head=_tail=nullptr;
             _size=count;
             for(size_t i=0;i<_size;++i){
-                T value=rand()%(max-min+1)+min;
+                T value=rand() % (max-min+1)+min;
                 push_tail(value);
             }
         }
@@ -90,12 +90,12 @@ class DLList{
             if(this!= &other){
                 clear();
                 Node<T>* tmp=other._head;
-                while(tmp){
+                while(tmp!=nullptr){
                     push_tail(tmp->data);
                     tmp=tmp->next;
                 }
             }
-            _size=other._size;
+            //_size=other._size;
             return *this;
         }
         T& operator[](int idx){
@@ -106,21 +106,21 @@ class DLList{
         }
 
         Node<T>* insert(int idx,const T& value){
-            Node<T>* next=get_data(idx);
-            if(next==nullptr){
+            Node<T>* right=get_data(idx);
+            if(right==nullptr){
                 ++_size;
                 return push_tail(value);
             }
-            Node<T>* prev=next->prev;
-            if(prev==nullptr){
+            Node<T>* left=right->prev;
+            if(left==nullptr){
                 ++_size;
                 return push_head(value);
             }
             Node<T>* new_value=new Node<T>(value);
-            new_value->prev=prev;
-            new_value->next=next;
-            prev->next=new_value;
-            next->prev=new_value;
+            new_value->prev=left;
+            new_value->next=right;
+            left->next=new_value;
+            right->prev=new_value;
             ++_size;
             return new_value;
         }
@@ -135,8 +135,8 @@ class DLList{
             if(value->next==nullptr){
                 return pop_tail();
             }
-            Node<T> right=value->next;
-            Node<T> left=value->prev;
+            Node<T>* right=value->next;
+            Node<T>* left=value->prev;
             right->prev=left;
             left->next=right;
             delete value;
@@ -156,25 +156,21 @@ class DLList{
         //Head and tail insert
         Node<T>* push_tail(const T& value){
             Node<T>* tmp=new Node<T>(value);
-            if(!_head){
-                _head=tmp;
+            if(_tail==nullptr){
+                _head=_tail=tmp;
             }
             else {
-                Node<T>* cur=_head;
-                while(cur->next!=nullptr){
-                    cur=cur->next;
-                    cur->next=tmp;
-                    tmp->prev=cur;
-                }
+                tmp->prev=_tail;
+                _tail->next=tmp;
+                _tail=tmp;
             }
-            _tail=tmp;
+            ++_size;
             return tmp;
         }
         Node<T>* push_tail(const DLList<T>& other){
             Node<T>* tmp=other._head;
             while(tmp!=nullptr){
-                T d=tmp->data;
-                push_tail(d);
+                push_tail(tmp->data);
                 tmp=tmp->next;
             }
             return tmp;
@@ -253,20 +249,14 @@ class DLList{
         }
 
         friend ostream& operator<<(ostream& out,const DLList<T>& list){
-            for (Node<T>* l=list.get_head();l!=nullptr;l=l->next){
-                out<<"List: "<<l->data<<endl;
+            Node<T>* tmp=list.get_head();
+            while(tmp!=nullptr){
+                out<<tmp->data<<" ";
+                tmp=tmp->next;
             }
             return out;
         }
 };
-
-template<typename T>
-void print(DLList<T> list){
-    cout<<"List: "<<endl;
-    for (Node<T>* l=list.get_head();l!=nullptr;l=l->next){
-        cout<<l->data<<endl;
-    }
-}
 
 
 int main(){
@@ -276,9 +266,40 @@ int main(){
     l2.push_head(7);
     l2.push_head(7);
     l2.push_head(0);
+    cout<<"List l2: "<<l2<<endl;
     cout<<"Check push_head: "<<l2<<endl;
-    //print(l2);
-    cout<<l1;
-    cout<<"Check operator= : "<<(l1=l2)<<endl;
-    //print(l2);
+    cout<<"List l1 before copy: "<<l1<<endl;
+    l1=l2;
+    cout<<"Check l1(operator=) : "<<l1<<endl;
+    DLList<double> l3;
+    l3.push_tail(3.4);
+    l3.push_tail(8.1);
+    l3.push_tail(34.7);
+    cout<<"List l3(check push_tail): "<<l3<<endl;
+    cout<<"Check operator[] for l2[1]: "<<l2[1]<<endl;
+    l2.insert(1,5);
+    cout<<"Check insert by idx for l2: "<<l2<<endl;
+    l3.insert(2,7.9);
+    cout<<"Check insert by idx for l3: "<<l3<<endl;
+    l2.remove(4);
+    cout<<"Check remove by idx for l2: "<<l2<<endl;
+    l3.remove(0);
+    cout<<"Check remove for l3: "<<l3<<endl;
+    DLList<int> l4;
+    l4.push_tail(2);
+    l4.push_tail(1);
+    l4.push_tail(13);
+    l4.push_tail(8);
+    l4.push_tail(19);
+    cout<<"List 4: "<<l4<<endl;
+    l4.push_head(l2);
+    cout<<"Check push_head(list) for l4: "<<l4<<endl;
+    l4.push_tail(l1);
+    cout<<"Check push_tail(list) for l4: "<<l4<<endl;
+    l2.pop_head();
+    cout<<"Check pop_head for l2: "<<l2<<endl;
+    l3.pop_tail();
+    cout<<"Check pop_tail for l3: "<<l3<<endl;
+    l1.delete_node(4);
+    cout<<"Check delete_node for l1: "<<l1<<endl;
 };
